@@ -9,25 +9,45 @@
 #include <memory>
 #include <unordered_map>
 #include <algorithm>
+#include <typeinfo>
+#include <iostream>
 
 class InMemoryMap
 {
 private:
     std::unique_ptr<unsigned char[]> array;
     std::unordered_map<unsigned char*, size_t> tracker;
-    size_t totalSize;
+    size_t maxCapacity;
     size_t consumedSize;
 
 public:
+
+    /**
+     * The amount of memory consumed by a single byte (1).
+     */
     const static unsigned int BYTE = 1;
+
+    /**
+     * The amount of memory consumed by a single kilo byte.
+     */
     const static unsigned int KILO_BYTE = 1024 * BYTE;
+
+    /**
+     * The amount of memory consumed by a single mega byte.
+     */
     const static unsigned int MEGA_BYTE = KILO_BYTE * KILO_BYTE;
+
+    /**
+     * The amount of memory consumed by a single giga byte.
+     */
     const static unsigned int GIGA_BYTE = MEGA_BYTE * KILO_BYTE;
 
     explicit InMemoryMap(size_t);
-    ~InMemoryMap();
+    ~InMemoryMap() = default;
 
-    size_t size() const;
+    size_t getMaxCapacity() const;
+    size_t getRemainingCapacity() const;
+    size_t getConsumedCapacity() const;
 
     /**
      * Implementing this here for now since it is a template function.
@@ -43,28 +63,27 @@ public:
     {
         size_t sizePerValue = sizeof(T);
         size_t amountToAllocate = sizePerValue * size;
-        size_t spaceRemaining = this->size() - consumedSize;
 
-        if (spaceRemaining >= amountToAllocate)
+        if (this->getRemainingCapacity() >= amountToAllocate)
         {
-            size_t max = 0;
-            for_each(tracker.begin(), tracker.end(), [&max](std::pair<unsigned char*, size_t> entry)
+            size_t lastUsedMemoryIndex = 0;
+            for_each(this->tracker.begin(), this->tracker.end(), [&lastUsedMemoryIndex](std::pair<unsigned char*, size_t> entry)
             {
-                if (max < entry.second)
+                if (lastUsedMemoryIndex < entry.second)
                 {
-                    max = entry.second;
+                    lastUsedMemoryIndex = entry.second;
                 }
             });
 
-            if (max + amountToAllocate > this->size())
+            if (lastUsedMemoryIndex + amountToAllocate > this->getMaxCapacity())
             {
                 // Need to shuffle memory
                 throw std::runtime_error("Not enough continuous memory, need to shuffle");
             }
 
-            consumedSize+= size;
-            tracker.insert({ &array[max], size });
-            return (T*) &array[max];
+            this->consumedSize += amountToAllocate;
+            this->tracker.insert({ &this->array[lastUsedMemoryIndex], amountToAllocate });
+            return (T*) &this->array[lastUsedMemoryIndex];
         }
         return nullptr;
     }

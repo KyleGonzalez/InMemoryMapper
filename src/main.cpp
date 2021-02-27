@@ -3,14 +3,14 @@
 
 int main()
 {
-    InMemoryMap map(InMemoryMap::BYTE * 20);
+    InMemoryMap map(InMemoryMap::BYTE * 79);
 
-    char* x = map.allocate<char>(10);
+    int* x = map.allocate<int>(10);
     if (x != nullptr)
     {
-        std::cout << "Size: " << map.size() << std::endl;
+        std::cout << "Capacity: " << map.getMaxCapacity() << std::endl;
         std::cout <<  "X: " << x[0] << std::endl;
-        x[0] = 'A';
+        x[0] = 10;
         std::cout <<  "X: " << x[0] << std::endl;
     }
     else
@@ -18,7 +18,7 @@ int main()
         std::cout << "X is null" << std::endl;
     }
 
-    char* y = map.allocate<char>(10);
+    int* y = map.allocate<int>(10);
     if (y != nullptr)
     {
         std::cout << "Y: " << y[0] << std::endl;
