@@ -3,7 +3,7 @@
 
 int main()
 {
-    InMemoryMap map(InMemoryMap::BYTE * 79);
+    kt::InMemoryMap map(kt::InMemoryMap::BYTE * 79);
 
     int* x = map.allocate<int>(10);
     if (x != nullptr)
