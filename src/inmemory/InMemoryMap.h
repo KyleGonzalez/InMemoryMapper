@@ -61,7 +61,7 @@ namespace kt
          * @return a pointer to the allocated memory. Or null if there is not enough memory
          */
         template<typename T>
-        T* allocate(const unsigned int& size)
+        T* allocate(const size_t& size)
         {
             const size_t sizePerValue = sizeof(T);
             const size_t amountToAllocate = sizePerValue * size;
